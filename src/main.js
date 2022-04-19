@@ -9,7 +9,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue-3/dist/bootstrap-vue-3.css'
 import 'bootstrap'
 
-axios.defaults.baseURL = "http://localhost:3000";
+axios.defaults.baseURL = process.env.VUE_APP_API_ROOT;
 
 const app = createApp(App)
 app.config.performance = true

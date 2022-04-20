@@ -1,0 +1,15 @@
+name: 'Terraform Apply'
+description: 'Terraform apply workflow'
+
+runs:
+  using: "composite"
+  steps:
+    - name: terraform initialize
+      run: terraform init -backend-config=backends/prod.conf
+      shell: bash
+      working-directory: terraform
+
+    - name: terraform apply
+      run: terraform apply -var-file=environments/prod.tfvars -auto-approve
+      shell: bash
+      working-directory: terraform

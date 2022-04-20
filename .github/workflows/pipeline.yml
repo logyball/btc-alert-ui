@@ -1,0 +1,94 @@
+name: ui
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: 
+       - main
+  push:
+    branches: 
+       - main
+
+jobs:
+  # format:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
+  #     - name: setup terraform
+  #       uses: hashicorp/setup-terraform@v1
+  #       with:
+  #         terraform_wrapper: false
+   
+  #     - name: terraform format
+  #       run: terraform fmt -recursive -check
+  #       working-directory: terraform
+
+  # plan-prod:
+  #   needs: [ 'format' ]
+  #   if: ${{ github.event_name == 'pull_request' }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
+  #     - name: setup terraform
+  #       uses: hashicorp/setup-terraform@v1
+  #       with:
+  #         terraform_wrapper: false
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+      
+  #     - uses: ./.github/actions/plan
+
+  # prod:
+  #   needs: [ 'format' ]
+  #   if: ${{ github.event_name == 'push' }}
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v2
+  #     - name: setup terraform
+  #       uses: hashicorp/setup-terraform@v1
+  #       with:
+  #         terraform_wrapper: false
+
+  #     - name: Configure AWS credentials
+  #       uses: aws-actions/configure-aws-credentials@v1
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  #         aws-region: us-east-1
+
+  #     - uses: ./.github/actions/apply
+
+  cloudfront:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      
+      - name: build static assets for distribution
+        run: npm run build -- --mode=production
+      
+      - name: copy into website bucket
+        run: aws --region us-east-1 s3 sync ./dist s3://logyball-btc-alert-website --delete
+
+      - name: invalidate cloudfront
+        run: aws cloudfront create-invalidation --distribution-id E1P6NWCQXZPFLC --paths "/*"
+      
+
+
+      
+    

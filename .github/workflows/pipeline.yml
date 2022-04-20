@@ -47,6 +47,9 @@ jobs:
     needs: [ 'format' ]
     if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
+    outputs: 
+      cloudfront-id: ${{ steps.tf-output.outputs.cloudfront }} 
+      bucket-id: ${{ steps.tf-output.outputs.bucket }}
     steps:
       - name: checkout
         uses: actions/checkout@v2
@@ -63,6 +66,15 @@ jobs:
           aws-region: us-east-1
 
       - uses: ./.github/actions/apply
+
+      - name: tf outputs
+        id: tf-output
+        run: |
+          cd terraform
+          terraform init
+          echo "::set-output name=cloudfront::$(terraform output -raw cloudfront_id)"
+          echo "::set-output name=bucket::$(terraform output -raw website_bucket)"
+
 
   deploy-website:
     needs: [ 'apply' ]
@@ -86,10 +98,10 @@ jobs:
           npm run build -- --mode=production
       
       - name: copy into website bucket
-        run: aws --region us-east-1 s3 sync ./dist s3://logyball-btc-alert-website --delete
+        run: aws --region us-east-1 s3 sync ./dist s3://${{ needs.apply.outputs.bucket-id }} --delete
 
       - name: invalidate cloudfront
-        run: aws cloudfront create-invalidation --distribution-id E1P6NWCQXZPFLC --paths "/*"
+        run: aws cloudfront create-invalidation --distribution-id ${{ needs.apply.outputs.cloudfront-id }} --paths "/*"
       
 
 

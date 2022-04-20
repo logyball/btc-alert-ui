@@ -14,7 +14,7 @@ data "aws_iam_policy_document" "website_policy" {
 }
 
 resource "aws_s3_bucket" "website" {
-  acl = "public-read"
+  acl    = "public-read"
   bucket = var.domain_name
   policy = data.aws_iam_policy_document.website_policy.json
 

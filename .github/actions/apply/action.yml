@@ -5,11 +5,11 @@ runs:
   using: "composite"
   steps:
     - name: terraform initialize
-      run: terraform init -backend-config=backends/prod.conf
+      run: terraform init
       shell: bash
       working-directory: terraform
 
     - name: terraform apply
-      run: terraform apply -var-file=environments/prod.tfvars -auto-approve
+      run: terraform apply -auto-approve
       shell: bash
       working-directory: terraform

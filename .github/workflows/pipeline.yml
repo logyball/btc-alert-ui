@@ -64,7 +64,7 @@ jobs:
 
   #     - uses: ./.github/actions/apply
 
-  cloudfront:
+  deploy-website:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
@@ -80,7 +80,9 @@ jobs:
           node-version: '16'
       
       - name: build static assets for distribution
-        run: npm run build -- --mode=production
+        run: |
+          npm install
+          npm run build -- --mode=production
       
       - name: copy into website bucket
         run: aws --region us-east-1 s3 sync ./dist s3://logyball-btc-alert-website --delete
